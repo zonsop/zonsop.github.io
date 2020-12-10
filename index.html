@@ -1,0 +1,620 @@
+# zonsop.github.io
+
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head runat="server">
+    <title>Enneagram Test</title>
+	<style>
+		table, tr, td{
+		border: 3px solid black;
+		text-align: center;
+		font-weight: bold;}
+		
+		table{
+		border-collapse: collapse;
+		-moz-user-select: none; 
+		-webkit-user-select: none; 
+		-ms-user-select:none; 
+		user-select:none;
+		-o-user-select:none;
+		unselectable=on;
+		onselectstart=return false;
+		onmousedown=return false;
+		}
+		
+		td:hover {
+		background-color: lightgray;}
+		
+		#goToQuestion{
+		height: 90px;
+		width: 90px; 
+		font-size: 40px;
+		text-align: center;}
+		
+		#warnings{
+		font-weight: bold;
+		width: 500px;
+		height: 300px;}
+		
+		#results{
+		font-size: 19px;
+		font-weight: bold;
+		width: 525px;
+		}
+
+	</style>
+</head>
+<body>
+    <table id="Questions">
+		<tr><td bgcolor="lightgray" style="font-size:20px;" width="500" height="100" colspan="5" id="question"></td></tr>
+		<tr id="points">
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="x1">1</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="x2">2</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="x3">3</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="x4">4</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="x5">5</td>
+		</tr>
+		<tr>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="geri" onclick="back()"><<<</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="begin" onclick="begin()" colspan="3">Start Test</td>
+			<td style="font-size:40px;" height="100" width="100" style="cursor:hand" id="ileri" onclick="forward()">>>></td>
+		</tr>
+		<tr>
+			<td style="font-size:40px;" height="100" width="100" colspan="4" onclick="goToThisQuestion()" >Go to question:</td>
+			<td onclick="simpleWarning()"><input type="text" id="goToQuestion" disabled="true"></input></td>
+		</tr>
+	</table>
+	<p id="results"></p>
+	<p id="warnings"></p>
+</body>
+<head>
+<script type="text/javascript">
+	function setInputFilter(textbox, inputFilter) {
+	  ["input", "keydown", "keyup", "mousedown", "mouseup", "select", "contextmenu", "drop"].forEach(function(event) {
+		textbox.addEventListener(event, function() {
+		if (inputFilter(this.value)) {
+			this.oldValue = this.value;
+			this.oldSelectionStart = this.selectionStart;
+			this.oldSelectionEnd = this.selectionEnd;
+		} else if (this.hasOwnProperty("oldValue")) {
+			this.value = this.oldValue;
+			this.setSelectionRange(this.oldSelectionStart, this.oldSelectionEnd);
+		} else {
+			this.value = "";
+		}
+		});
+	  });
+	}
+	
+	setInputFilter(document.getElementById("goToQuestion"), function(value) {
+	  return /^\d*$/.test(value);
+	});
+
+	var questions = ["1. Most people see me as a serious, no-nonsense person — and when all is said and done, 1 suppose I am.",
+"2. 1 have always tried to be honest and objective about myself — and I'm determined to follow my conscience no matter what the cost.",
+"3. While there is some part of me that can be wild, generally speaking that just hasn't been my style.",
+"4. It seems that I am living with a judge inside my head: sometimes the judge is wise and discerning, but often it is simply stern and harsh.",
+"5. 1 feel that I have paid a great price for trying to be perfect.",
+"6. 1 like to laugh as much as anyone — I should do it more often!",
+"7. My principles and ideals inspire me toward greater achievement and make my life feel meaningful and worthwhile.",
+"8. 1 do not understand why so many people have such lax standards.",
+"9. So much depends on me getting things done that I have to be more organized and methodical than others.",
+"10. 1 have a personal sense of mission, maybe even a calling to something higher, and I believe that there is something extraordinary that I may accomplish during my life.",
+"11. 1 hate mistakes, and so I tend to be extremely thorough to make sure that things are being done properly.",
+"12. Much of my life I have believed that right is right and wrong is wrong — and that's all there is to it.",
+"13. 1 have a hard time leaving well enough alone.",
+"14. Many responsibilities have fallen on my shoulders: if I hadn't risen to the occasion, God only knows what would have happened.",
+"15. I am deeply moved by human nobility and grace under pressure.",
+"16. My genuine concern for others makes me become deeply involved with them — with their hopes, dreams, and needs.",
+"17. It feels natural to be friendly: 1 strike up conversations easily and am on a first-name basis with everyone.",
+"18. I have found that people respond warmly to me when I give them some attention and encouragement.",
+"19. I cannot see a stray dog in the street without wanting to bring it home.",
+"20. I feel good about the fact that I am a thoughtful, generous person.",
+"21. It's hard for me to take credit for the many things I've done for people, but it bothers me a lot when they don't seem to notice or care.",
+"22. It is true that I often do more for others than I should — I give away too much and do not think of myself enough.",
+"23. I often find myself trying to win people over — especially if they initially seem indifferent to me.",
+"24. I take special joy in entertaining and hosting my friends and 'extended family.'",
+"25. I can be warm and supportive, but there is more steel in me than others might think.",
+"26. I am able to express my feelings for people more openly than most.",
+"27. I make special efforts to know what's going on with the people I care about.",
+"28. I see myself as something of a 'healer of broken hearts.'",
+"29. My health and finances have frequently suffered because I have put other people's needs and interests before my own.",
+"30. I love to knock myself out to make people feel welcomed and appreciated.",
+"31. 1 see myself as a highly competent person: it really bothers me when I am anything less than effective and efficient.",
+"32. When things are going well for me, I virtually 'glow' with a kind of inner joy in being who I am and having the life that I have.",
+"33. I try to present myself to others in the best possible light — but doesn't everyone?",
+"34. My feelings have tended to be foreign to me — I feel things strongly for a little while, and then just get on with things.",
+"35. It's important to me to feel successful, even if I'm not yet the success I want to be.",
+"36. For better or worse, I am good at covering up my insecurities — people would never guess what I'm really feeling!",
+"37. I want to make a good impression on people, so I'm usually polite, well-mannered, and friendly.",
+"38. I am aware of how well my friends and colleagues are doing, and I tend to compare myself with them.",
+"39. I often strive to be the best at what I'm doing — if I can't be outstanding at something, I generally don't bother with it.",
+"40. Sometimes I've had to cut corners a little to achieve my goals.",
+"41. When I am insecure, I can be rather aloof and cool with people.",
+"42. It really bothers me when others don't acknowledge the excellence of what I've done.",
+"43. I'm more adaptable than most; if things aren't working well, I know how to change my behavior to obtain the results I want.",
+"44. I always have a goal in focus and know how to motivate myself to achieve it.",
+"45. I have a workaholic streak — I feel adrift if I'm not accomplishing things.",
+"46. Many people see me as enigmatic, difficult, and contradictory — and I like that about myself!",
+"47. I tend to brood over my negative feelings for a long time before getting free of them.",
+"48. I often feel alone and lonely, even when I'm around people I'm close to.",
+"49. If I'm criticized or misunderstood, I tend to withdraw and sulk.",
+"50. I find it difficult to get involved with projects if I don't have creative control.",
+"51. I tend not to follow rules or to go along with expectations because I want to put my own special touch on whatever I do.",
+"52. By most standards, I'm fairly dramatic and temperamental.",
+"53. I tend to spend quite a bit of time imagining scenes and conversations that haven't necessarily happened.",
+"54. I long for someone to rescue me and sweep me away from all of this dreary mess.",
+"55. When things get tough, I tend to crumble and give up — perhaps I give up too easily.",
+"56. I can forgive almost anything except bad taste.",
+"57. Generally, I don't enjoy working too closely with others.",
+"58. Finding myself and being true to my emotional needs have been extremely important motivations for me.",
+"59. I don't like either to take the lead or to be a follower.",
+"60. I am acutely aware of my intuitions, whether or not I have the courage to act on them.",
+"61. I like to get into things in depth and pore over details until I've figured something out as completely as possible.",
+"62. I am an extremely private person who doesn't let many people into my world.",
+"63. I do not feel very big or powerful — more small and invisible: I'd make a good spy!",
+"64. Other people would think I'm crazy if they knew what I was thinking most of the time.",
+"65. Only by getting accurate information can you make a rational decision — but then, most people aren't really rational.",
+"66. My family thinks that I am somewhat strange or eccentric — they've certainly told me that I need to get out more.",
+"67. I can talk a blue streak when I want to; most of the time, though, I prefer to just watch all the craziness around me.",
+"68. If you need a problem solved, let me work on it by myself, and I'll come up with the answer.",
+"69. When you really think about it, you can't get much stranger than so-called normal behavior.",
+"70. I tend to take a long time fine-tuning projects I'm working on.",
+"71. Most people are so incredibly ignorant, it is amazing that anything works at all!",
+"72. I know a lot about a lot of things, and in a few areas, I consider myself an expert.",
+"73. I am extremely curious and enjoy investigating why things are the way they are — even obvious things are not really so obvious when you really look at them.",
+"74. My mind is so intense and active that I often feel like it's on fire.",
+"75. Often I lose all track of time because I'm concentrating so completely on what I'm doing",
+"76. I am attracted to authority but distrustful of it at the same time.",
+"77. I am very emotional, although I don't often show what I feel — except to those I'm close with — and even then, not always.",
+"78. If I make a mistake, I fear that everyone is going to jump down my throat.",
+"79. I feel more secure doing what's expected of me than striking out on my own.",
+"80. I may not always agree with the rules — and I don't always follow them — but I want to know what they are!",
+"81. I tend to have strong first impressions about people that are difficult to change.",
+"82. There are a few people I really look up to — they are sort of my heroes.",
+"83. I don't like making big decisions, but I certainly don't want anyone else to make them for me!",
+"84. Some people see me as jittery and nervous — but they don't know the half of it!",
+"85. I know how much I mess up, so being suspicious of what others are up to just makes sense to me.",
+"86. I want to trust people, but often find myself questioning their motives.",
+"87. I am a real hard worker: I keep plodding along until the job gets done.",
+"88. I sound out the opinions of people I trust before I have to make a big decision.",
+"89. It's really weird: I can be skeptical, even cynical, about all kinds of things, and then turn around and fall for something hook, line, and sinker.",
+"90. 'Anxiety' seems to be my middle name.",
+"91. 1 love traveling and discovering different kinds of foods, people, and experiences — the whole fabulous whirlwind of life!",
+"92. My calendar is usually full, and I like to keep it that way: no grass is going to grow under my feet!",
+"93. What's important to me is excitement and variety rather than comfort and playing it safe — although I'll take my comforts wherever I can find them.",
+"94. My mind is always chattering — sometimes it seems like I'm thinking about ten things at once!",
+"95. One thing I absolutely cannot stand is being bored — and I make sure that I am never boring myself.",
+"96. I'm pretty committed when I'm in a relationship, but when it's over, I move on.",
+"97. I am curious and adventurous and am usually the first one of my friends to try whatever is new and interesting.",
+"98. When I no longer enjoy doing something, I stop doing it.",
+"99. I'm not just a 'fun person' — there is a serious, even darkside to me, although I do not like to go there very much.",
+"100. I'm good at the big picture, not so much the little details: it's more enjoyable for me to brainstorm a lot of new ideas than to get involved with implementing them.",
+"101. When I really want something, I usually find a way to get it.",
+"102. Things get me down once in a while, but I quickly pop back up again.",
+"103. One of my main problems is that I am easily distracted and can get too scattered.",
+"104. I tend to spend more money than I probably should.",
+"105. Other people are great to have — as long as they want to go where I'm going.",
+"106. I am extremely independent and don't like having to rely on others for what I really need.",
+"107. I feel that 'you have to break some eggs to make an omelet.'",
+"108. When I care about people, I often begin to think of them as 'my people' and feel like I need to watch out for their interests.",
+"109. I know how to get results: I know how to reward people and how to put pressure on them to get things done.",
+"110. I do not have much sympathy for those who are weak and vacillating — weakness just invites trouble.",
+"111. I am strong-willed and do not give up or back down easily.",
+"112. I am never prouder than when I see someone I've taken under my wing make it on their own.",
+"113. I have a tender, even somewhat sentimental side that I show to very few people.",
+"114. People who know me appreciate the fact that I talk straight to them and tell them exactly what's on my mind.",
+"115. I've had to work hard for everything I have — I think struggle is good because it toughens you up and makes you clear about what you want.",
+"116. I see myself as a challenger, as someone who pushes people beyond their comfort zone to achieve their best.",
+"117. My sense of humor is earthy, sometimes even crude, although I think most people are too prissy and thin-skinned.",
+"118. I can get into a towering rage, but it blows over.",
+"119. I feel most alive when I do what others think is impossible: I like to go to the edge and see if I can beat the odds.",
+"120. Somebody usually has to come up on the short end of the stick, and I don't want it to be me.",
+"121. What people seem to like about me is that they feel safe around me.",
+"122. I don't mind being around people, and I don't mind being alone — either way is fine, as long as I'm at peace with myself.",
+"123. I've found a certain balance in my life, and I see no reason to mess with it.",
+"124. Being 'comfortable' in every sense of the word appeals to me a lot.",
+"125. I would rather give someone else their way than create a scene.",
+"126. I don't know exactly how I do it, but I don't let things get to me.",
+"127. I'm pretty easy to please and usually feel that what I have is good enough for me.",
+"128. I've been told that I seem distracted and absentminded — the fact is I understand things, but I just don't want to react to them.",
+"129. I don't think I'm particularly stubborn, but people say that I can be hard-headed once I make up my mind.",
+"130. Most people get themselves worked up too easily: I'm much more even-keeled.",
+"131. You've got to take what life brings, since there's not much you can do about it anyway!",
+"132. I can easily see different points of view, and I tend to agree with people more than I disagree with them.",
+"133. I believe in emphasizing the positive rather than dwelling on the negative.",
+"134. I have what might be called a philosophy of life that guides me and gives me a great deal of comfort in difficult times.",
+"135. During the day, I do everything that needs to be done, but when the day is over, I really know how to relax and take it easy."];
+	
+	var answers = [];
+	for(var i=0; i<135; i++){
+		answers[i]=0;
+	}
+	
+	var uncompletedQuestions = [];
+	var Q = document.getElementById("question");
+	var warning = document.getElementById("warnings");
+	var atThisQuestion=0;
+	var begun=0;
+	var scores = [];
+	function begin(){
+		var textt = document.getElementById("begin");
+	
+		if (begun==1){
+			getUncompletedQuestions();
+			var completeThese = uncompletedQuestions.length;
+			if (completeThese==0){
+				textt.innerHTML= "Test Ended."
+				scoring();
+			}
+			else {
+				var displayUncompletedQuestions = "Please answer these questions: ";
+				var addedText = "";
+				for (var i=0; i<completeThese; i++){
+					if (i==completeThese-1) addedText += uncompletedQuestions[i];
+					else addedText += uncompletedQuestions[i] + ", ";
+				}
+				uncompletedQuestions = [];
+				displayUncompletedQuestions += addedText;
+				warning.innerHTML = displayUncompletedQuestions;
+			}
+			
+		}
+
+		if (begun==0){
+			Q.innerHTML = questions[atThisQuestion];
+			begun++;
+			textt.innerHTML = "End Test"
+			document.getElementById("goToQuestion").disabled = false;
+		}
+	}
+	
+	function simpleWarning(){
+		if (begun==0) warning.innerHTML="Please start the test first.";
+	}
+	
+	function scoring() {
+		for (var i=0; i<9; i++){
+			scores[i]=0;
+		}
+		
+		var atThisType = 0;
+		for (var i=0; i<answers.length; i++){
+			atThisType= Math.floor(i/15);
+			scores[atThisType] += answers[i]
+		}
+		
+		displayScores();
+	}
+	
+	var triTypeDescriptions= "";
+	function displayScores(){
+		warning.innerHTML="";
+		var resultsText = ""
+		var dots = "";
+		for (var i=0; i<9; i++){
+			for (var j=0; j<scores[i]; j++){
+				dots += ".";
+			}
+			resultsText += "Type " + (i+1) + " Score: " + scores[i] + "/75|" + dots + "|<br/>"
+			dots="";
+		}
+		var R = document.getElementById("results");
+		var triTypesText= displayTritypes();
+		displayTritypeDescriptions();
+		R.innerHTML = resultsText + "<br/>" + triTypesText + "<br/>" + triTypeDescriptions;
+	}
+	
+	var triTypes = [];
+	function displayTritypes(){
+		calculateTritype();
+		generateAllScoredTritypes();
+		var triTypesText="Your tritypes: ";
+		for (var i=0; i<triTypes.length; i++){
+			if (i != triTypes.length-1)
+				triTypesText += triTypes[i] + ", ";
+			else triTypesText += triTypes[i];
+		}
+		return triTypesText;
+	}
+	
+	var heartEquals = [];
+	var headEquals = [];
+	var gutEquals = [];
+	function calculateTritype(){
+		var heart = [scores[1],scores[2],scores[3]];
+		var head = [scores[4],scores[5],scores[6]];
+		var gut = [scores[7],scores[8],scores[0]];
+		
+		var heartMax = 0, heartValue = 0;
+		var headMax = 0, headValue = 0;
+		var gutMax = 0, gutValue = 0;
+		
+		for (var i=0; i<3; i++){
+			if (heart[i]>heartValue){
+				heartValue=heart[i];
+				heartMax = i+2;
+			}
+			if (head[i]>headValue){
+				headValue=head[i];
+				headMax = i+5;
+			}
+			if (gut[i]>gutValue){
+				gutValue=gut[i];
+				if (i!=2) gutMax = i+8;
+				else gutMax = 1;
+			}
+		}
+		
+		for (var i=0; i<3; i++){
+			if (heartValue==heart[i]) {
+				heartEquals.push(i+2);
+			}
+			if (headValue==head[i]) headEquals.push(i+5);
+			if (i!=2){
+				if (gutValue==gut[i]) gutEquals.push(i+8);
+			} else if (gutValue==gut[i]) gutEquals.push(1);
+		}
+	}
+	
+	function generateAllScoredTritypes(){
+		var addedType= "1";
+		
+		//check if there is type 1
+		typeOneExists=false;
+		for (var gutsIndex = 0; gutsIndex<gutEquals.length; gutsIndex++) if (gutEquals[gutsIndex]==1) typeOneExists=true;
+		
+		//generate types for type 1
+		if (typeOneExists){
+			for (var heartsIndex = 0; heartsIndex<heartEquals.length; heartsIndex++){
+				addedType += "" + heartEquals[heartsIndex];
+				//console.log(heartEquals);
+				for (var headsIndex = 0; headsIndex<headEquals.length; headsIndex++){
+					addedType += "" + headEquals[headsIndex];
+					triTypes.push(addedType);
+					addedType="1"+heartEquals[heartsIndex];
+				}
+				addedType="1";
+			}
+		}
+		
+		//generate types for heart types
+		addedType="";
+		for (var heartsIndex = 0; heartsIndex<heartEquals.length; heartsIndex++){
+			addedType += "" + heartEquals[heartsIndex];
+			for (var headsIndex = 0; headsIndex<headEquals.length; headsIndex++){
+				addedType += "" + headEquals[headsIndex];
+				for (var gutsIndex = 0; gutsIndex<gutEquals.length-1; gutsIndex++){
+					addedType += "" + gutEquals[gutsIndex];
+					triTypes.push(addedType);
+					addedType=heartEquals[heartsIndex]+""+headEquals[headsIndex];
+				}
+				addedType=""+heartEquals[heartsIndex];
+			}
+			addedType="";
+		}
+	}
+	
+	var allTriTypes = [["125", "126", "127", "135", "136", "137", "145", "146", "147", "258", "259", "268", "269", "278", "279", "358", "359", "368", "369", "378", "379", "458", "459", "468", "469", "478", "479"],[fType125, fType126, fType127, fType135, fType136, fType137, fType145, fType146, fType147, fType258, fType259, fType268, fType269, fType278, fType279, fType358, fType359, fType368, fType369, fType378, fType379, fType458, fType459, fType468, fType469, fType478, fType479]];
+	
+function fType125(){
+var Type125 = "(125) The Mentor: practical, caring, knowledgeable, controlling, demanding, advisor, helpful, orderly, social, friendly, have high expectations of others, might push people to their limits, diligent, ethical, wise, idealistic, effective, private, inquisitive, warm, critical, perfectionist, sacrifice, abstract, emotional + intellectual, altruistic, reserved, generous, precise, thorough";
+triTypeDescriptions += "<br/>"+Type125+"<br/>";
+}
+
+function fType126(){
+var Type126 = "(126) The Supporter: caring, inquisitive, ethical, helpful, cooperative, responsible, helper, loyal, discerning, self critical, preparing, devoted, friendly, affectionate, altruistic, conscientious, controlling, possessive, reliable, demanding, dutiful, empathetic, trust, loyalty, integrity, rule-bound, honest, sceptical, suspicious, generous";
+triTypeDescriptions += "<br/>"+Type126+"<br/>";
+}
+
+function fType127(){
+var Type127 = "(127) The Teacher: people oriented, positive, upbeat, perfectionist, diligent, ethical, inspirational, friendly, delusional, generous, caring, optimistic, playful, have many friends, want variety, open, busy, humorous";
+triTypeDescriptions += "<br/>"+Type127+"<br/>";
+}
+
+function fType135(){
+var Type135 = "(135) The Technical Expert: tenacious, persistent, driven, self disciplined, image oriented, appropriate, discerning, self demanding, judgmental, want control, productive, hard working, intelligent, focused, critical, obstinate, efficient, wise, rational, detail oriented, precise, pragmatic, tenacious, analytical, ambitious, elitist, cold, self assured, well-mannered, introverted, objective, impatient, self-righteous, tactful to some extent, organised";
+triTypeDescriptions += "<br/>"+Type135+"<br/>";
+}
+
+function fType136(){
+var Type136 = "(136) The Taskmaster: discerning, focused, responsible, image conscious, industrious, busy, goal oriented, friendly, resolute, elegant, self critical, hard-working, well-organised, dutiful, diligent, efficient, leader, worrier, cautious, practical, realistic, down-to-earth, arrogant, follow rules, loyal, perfectionist, hands-on, prepared, achieving";
+triTypeDescriptions += "<br/>"+Type136+"<br/>";
+}
+
+function fType137(){
+var Type137 = "(137) The Systems Builder: diligent, ambitious, innovative, ethical, efficient, upbeat, self-motivated, perfectionist, appropriate, positive, successful, orderly, focused, productive, creative, delusional, think they know, visionary, enjoyable, interpersonal, achieving, socially adaptable, goal-oriented, competitive, extrovert, assertive, leader, socially adept, flexible, open, selfish, arrogant";
+triTypeDescriptions += "<br/>"+Type137+"<br/>";
+}
+
+function fType145(){
+var Type145 = "(145) The Researcher: reserved, introspective, self conscious, critical of themselves and others, have a lot of shoulds, strident, dissatisfied, diligent, intuitive, knowledgeable, ethical, original, wise, intellectual, correct, research oriented, philosophy, tend to hesitate, emotional, unique, appropriate, shy, high standards, creative, yearn romance, mysterious, sensitive, academic, never finished, able to dissect their emotions rationally, frustrated, serious, focused, insightful, intuitive, impractical, idealistic";
+triTypeDescriptions += "<br/>"+Type145+"<br/>";
+}
+
+function fType146(){
+var Type146 = "(146) The Philosopher: diligent, intuitive, inquisitive, ethical, original, morally focused, strong emotions, caring, critical, picky, discerning, compliant, rule-oriented, perfectionist, neurotic, feeling superior, self controlled, frustrated, creative, melancholic, don’t trust others, suspicious, angry, passionate, sensitive, dutiful, faithful, honest, hard-working, intense, obedient OR rebellious, introverted";
+triTypeDescriptions += "<br/>"+Type146+"<br/>";
+}
+
+function fType147(){
+var Type147 = "(147) The Visionary: idealistic, perfectionist, serious, bold, playful, reserved, self conscious, uninhibited, optimistic, frustrated, diligent, creative, intuitive, ethical, right, magical, fussy, intense, disciplined, special, expressive, original, fastidious, impatient, unconventional, eccentric, energetic, selfish";
+triTypeDescriptions += "<br/>"+Type147+"<br/>";
+}
+
+function fType258(){
+var Type258 = "(258) The Strategist: ambivert: both extroverted energy introverted energy, hot/cold quality, helpful, rejecting, directive, blunt, protective, resource for others, caring, knowledgeable, wise, straight forward, intellectual, analyst, leader, strategic, power-hungry, mastermind, controlling, realist, sensitive to rejection, cautious, hesitant to attach, manipulative, domineering, possessive, temperamental, sudden outbursts of anger, guarder, insistent, big hearted, sacrificial, cynical, generous";
+triTypeDescriptions += "<br/>"+Type258+"<br/>";
+}
+
+function fType259(){
+var Type259 = "(259) The Problem Solver: caring, knowledgeable, accepting, helpful, wise, peaceful, shy, gentle, reserved, intellectual, avoid conflict, hesitant, not aggressive, but passive, don’t voice their views, gentle, kind-hearted, pattern seeking, open minded, philosophical, lack focus, easygoing, emotional, generous, social, friendly, understanding, modest, amiable, slow-paced, relaxed, procrastinate, spiritual";
+triTypeDescriptions += "<br/>"+Type259+"<br/>";
+}
+
+function fType268(){
+var Type268 = "(268) The Rescuer: direct, caring, protective, dutiful, frustrated, be in charge, break rules, people skills, giver, no deep connection to true self, sacrificial, loyal, rescuer, supportive, dynamic, possessive, domineering, powerful, reactive, explosive, controlling";
+triTypeDescriptions += "<br/>"+Type268+"<br/>";
+}
+
+function fType269(){
+var Type269 = "(269) The Good Samaritan: easygoing, friendly, gentle, supportive, passive, not aggressive, avoid confrontation, indecisive, shy, withdrawn, actively helpful, doubtful, insecure, uncertain, accepting, kind hearted, mellow, not taking action, naïve, phobic, anxious, congenial, evasive, attuned";
+triTypeDescriptions += "<br/>"+Type269+"<br/>";
+}
+
+function fType278(){
+var Type278 = "(278) The Free Spirit: caring, innovative, people-oriented, gentle, helpful, outgoing, confident, power-seeking, positive, fun, charming, enthusiastic, joyful, exuberant, funny, charming, sunny, action oriented, upbeat, nurturing, free spirit, honest, busy, big hearted, magnanimous, generous, sacrificial, protector, focused, innovative, assertive, non-conforming, sensitive to the needs of others, humanitarians, excess, pride, defensive, compassionate, arrogant";
+triTypeDescriptions += "<br/>"+Type278+"<br/>";
+}
+
+function fType279(){
+var Type279 = "(279) The Peacemaker: open, resolving, light, no pain, harmonious, caring, innovative, accepting, helpful, upbeat, peaceful, kind, easygoing, humorous, optimistic, positive, effusive, relational";
+triTypeDescriptions += "<br/>"+Type279+"<br/>";
+}
+
+function fType358(){
+var Type358 = "(358) The Solution Master: tenacious, persistent, ambitious, opinionated, tough-minded, hard nosed, foundation building, mental giant, knowledgeable, protective, efficient, wise, straight-forward, focused, impersonal, narcissistic, capable, goal-oriented, measured, can get angry suddenly, power-seeking, guarded, insistent, low sensitivity, unemotional, forceful, brilliant, blunt, self confident, competitive, assertive, leader, pragmatic, driven, arrogant, hard-working, domineering";
+triTypeDescriptions += "<br/>"+Type358+"<br/>";
+}
+
+function fType359(){
+var Type359 = "(359) The Thinker: intellectual, clever, amiable, pleasant, shy, advocate, helpful, judicial, controlling, tenacious, persistent, goal-oriented, wise, adjusts to others, private, introspective, academic, wise, humorous, seems to be without feelings (hides them), calm, professional, dreamer, isolationist, image focused, expedient, whimsical, open minded, philosophical, lacks focus, cooperative, cunning, tactful + well-mannered, congenial, adaptable, goes with the flow";
+triTypeDescriptions += "<br/>"+Type359+"<br/>";
+}
+
+function fType368(){
+var Type368 = "(368) The Justice Fighter: debater, dynamic, against rules, loyal, feisty, achievement oriented, confronts others, disagreeable, firm, verbally adept, good reader of people + situations, protective, manipulative, direct, focused, achiever, loyal, trustable";
+triTypeDescriptions += "<br/>"+Type368+"<br/>";
+}
+
+function fType369(){
+var Type369 = "(369) The Mediator: a chameleon, adjustable, balanced, comfortable, anxious, warm, congenial, phobic, is influenced by society, smooth, don’t have a real identity, accepting, focused, professional, accommodating, obedient";
+triTypeDescriptions += "<br/>"+Type369+"<br/>";
+}
+
+function fType378(){
+var Type378 = "(378) The Mover & Shaker: slick, assertive, ambitious, innovative, protective, efficient, happy, straight-forward, dynamic, focused, expeditious, results-oriented, self-motivated, reactive, high energy, self-assured, bold, strong, outlandish, extrovert, involved, prominence-seeking, manipulative, direct, professional, non-conforming, entertaining";
+triTypeDescriptions += "<br/>"+Type378+"<br/>";
+}
+
+function fType379(){
+var Type379 = "(379) The Ambassador: outgoing, easygoing, soft, gentle, kind, good-willed, happy, peaceful, positive, upbeat, achieving, professional, cool, trendy, adaptive, reflective, considerate, indecisive, chameleon-like, busy, omnivorous, practical, action-oriented, diplomatic, conflict-avoidant, dreamer, funny, happy, friendly, bright, chill, laid back";
+triTypeDescriptions += "<br/>"+Type379+"<br/>";
+}
+
+function fType458(){
+var Type458 = "(458) The Scholar: more introverted, intelligent, headstrong, detached, introspective, strategic, emotionally astute, dark, intense, knowledgeable, direct, esoteric, cynical, opinionated, original, reserved, confidence, focused, complex, can be moody/melancholic, direct, get angry/sad suddenly, guarded, analytic, wise, direct, blunt, factual, truth teller, reactive, independent, sensitive, fantasizing, dynamic, self-critical, contradictory, strong, vulnerable, changeable, fluctuating, temperamental, egocentric, defiant";
+triTypeDescriptions += "<br/>"+Type458+"<br/>";
+}
+
+function fType459(){
+var Type459 = "(459) The Contemplative: intuitive, knowledgeable, accepting, original, wise, peaceful, self-aware, reflective, very shy, reserved, philosopher, passive, quiet, soft energy, dissatisfied, capacity for depth, reclusive, humble, modest, discrete, ethereal, dreamy, unassertive, pleasant, objective + subjective, sensitive, avoidant, perceptive, thoughtful, responsible, diligent, accepting, idealist, open minded, easygoing, unconventional, fragile, romantic, insightful, imaginative, unstructured, laid back, random";
+triTypeDescriptions += "<br/>"+Type459+"<br/>";
+}
+
+function fType468(){
+var Type468 = "(468) The Truth Teller: reactive, disappointed, intuitive, inquisitive, direct, original, certain, straight-forward, sensitive, intense, rebellious at times, responsive, challenging, instinctive, dutiful, feisty, compassionate, heroic, impulsive, emotional, assertive, confrontational, tenacious, aggressive, playful, loyal, independent, defensive, creative, impulsive";
+triTypeDescriptions += "<br/>"+Type468+"<br/>";
+}
+
+function fType469(){
+var Type469 = "(469) The Seeker: intuitive, inquisitive, accepting, original, certain, peaceful, sensitive, individualistic, doubtful, aloof, passive, procrastinating, gentle, loyal, dutiful, avoidant, paranoid, not too confident, emotional, hesitant, anxious, accommodating, private, preparing, thoughtful";
+triTypeDescriptions += "<br/>"+Type469+"<br/>";
+}
+
+function fType478(){
+var Type478 = "(478) The Messenger: passionate, cutting edge, innovative, compassionate, freedom seeking, very creative, non conformist, flamboyant, exploring, intuitive, straight-forward, original, inspirational, self-possessed, unconventional, intense, can be moody and eccentric, outgoing, spontaneous, individualistic, assertive, optimistic, confrontational, fun-loving, fast-paced, emotional, powerful, aesthetically brilliant, visionary";
+triTypeDescriptions += "<br/>"+Type478+"<br/>";
+}
+
+function fType479(){
+var Type479 = "(479) The Gentle Spirit: a true dreamer, positive, ethereal, light energy, playful, meaningful, idealistic, upbeat, gentle, loving, calm, see beauty, lyrical, happy, imaginative, elusive, a touch of sadness, intense, tranquil, sensitive, very creative, somewhat shy, conflict avoidant, accepting, peaceful, original, laid-back, witty, whimsical, insatiable, doubtful, congenial";
+triTypeDescriptions += "<br/>"+Type479+"<br/>";
+}
+	
+	function displayTritypeDescriptions(){
+		for (var i=0; i<triTypes.length; i++)
+			for (var j=0; j<allTriTypes[0].length; j++){
+				if (triTypes[i]==allTriTypes[0][j])
+					allTriTypes[1][j]();
+			}
+	}
+	
+	function back(){
+		if (begun==1){
+			if (atThisQuestion!=0){
+				atThisQuestion--;
+				Q.innerHTML = questions[atThisQuestion];
+				getAnswer();
+			}
+		}
+		else warning.innerHTML="Please start the test first.";
+	}
+	
+	function forward(){
+		if (begun==1){
+			if (atThisQuestion!=134){
+				atThisQuestion++;
+				Q.innerHTML = questions[atThisQuestion];
+				getAnswer();
+			}
+		}
+		else warning.innerHTML="Please start the test first.";
+	}
+
+	function isValidGoTo(no){
+		if (no != ""){
+			if ((no-1 < 135) && (no-1 > -1)) return true;
+			else return false;
+		} else return false;
+	}
+
+	function goToThisQuestion(){
+		if (begun==1){
+			var no = document.getElementById("goToQuestion").value;
+			if (isValidGoTo(no)){
+				atThisQuestion = no-1;
+				Q.innerHTML = questions[atThisQuestion];
+				getAnswer();
+			} else warning.innerHTML="Please enter a value between 1-135.";
+		}
+		else warning.innerHTML="Please start the test first.";
+	}
+	
+	var tr = document.getElementById("points");
+	for (var i = 0; i < 5; i++)
+		tr.cells[i].onclick = function () {
+			givePoint(this);
+	};
+
+	
+	function givePoint(tableCell) {
+		if (begun==1){
+			tableCell.style.backgroundColor = "mediumseagreen";
+			givenPoint = Number(tableCell.innerHTML);
+			answers[atThisQuestion] = givenPoint;
+			getAnswer();
+		}
+		else warning.innerHTML="Please start the test first.";
+		uncompletedQuestions = [];
+	}
+	
+	function getAnswer(){
+		for (var i=0; i<5; i++){
+			tr.cells[i].style.backgroundColor = "";
+		}                                                         
+		
+		if (answers[atThisQuestion]!=0){
+			tr.cells[answers[atThisQuestion]-1].style.backgroundColor = "mediumseagreen";
+		}
+	}
+	
+	function getUncompletedQuestions(){
+		for (var i=0; i<135; i++){
+			if (answers[i]==0) uncompletedQuestions.push(i+1);
+		}
+	}
+	
+</script>
+</head>
+</html>
